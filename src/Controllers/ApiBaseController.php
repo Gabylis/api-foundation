@@ -4,15 +4,14 @@ namespace Gabylis\ApiFoundation\Controllers;
 
 use Illuminate\Routing\Controller;
 use Gabylis\ApiFoundation\Traits\ApiResponse;
-use OpenApi\Attributes as OA;
 
-#[OA\Info(title: 'Laravel API', version: '1.0.0')]
-#[OA\Server(url: '/api')]
-#[OA\SecurityScheme(
-    securityScheme: 'sanctum',
-    type: 'http',
-    scheme: 'bearer'
-)]
+/**
+ * Base controller for all API controllers.
+ *
+ * OpenAPI info (#[OA\Info], #[OA\Server], #[OA\SecurityScheme]) lives in
+ * app/OpenApi/OpenApiInfo.php — published via:
+ *   php artisan vendor:publish --tag=api-foundation-openapi
+ */
 abstract class ApiBaseController extends Controller
 {
     use ApiResponse;

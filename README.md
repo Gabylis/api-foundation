@@ -20,25 +20,64 @@ Built from real production patterns on Laravel + l5-swagger projects.
 composer require gabylis/api-foundation
 ```
 
-Publish the config (optional):
+### Publish everything
 
 ```bash
+# OpenAPI global metadata (title, version, server, security) — edit this file
+php artisan vendor:publish --tag=api-foundation-openapi
+
+# Package config (optional)
 php artisan vendor:publish --tag=api-foundation-config
+
+# Controller generator stub (optional — customise the template)
+php artisan vendor:publish --tag=api-foundation-stubs
 ```
 
-Publish the stubs to customise the generator template (optional):
+### Configure l5-swagger to scan the published file
 
-```bash
-php artisan vendor:publish --tag=api-foundation-stubs
+In `config/l5-swagger.php`, add both your `app/` folder and the published OpenApi folder to the annotations path:
+
+```php
+'annotations' => [
+    base_path('app'),
+    base_path('vendor/gabylis/api-foundation/src'),
+],
 ```
 
 ---
 
 ## What's included
 
+### `OpenApiInfo.php` (published to `app/OpenApi/`)
+
+Global OpenAPI metadata — edit freely after publishing:
+
+```php
+#[OA\Info(
+    title: 'My API',
+    version: '2.0.0',
+    description: 'My API description',
+    contact: new OA\Contact(email: 'dev@mycompany.com')
+)]
+#[OA\Server(url: '/api', description: 'Production')]
+#[OA\Server(url: '/api/v2', description: 'Staging')]
+#[OA\SecurityScheme(
+    securityScheme: 'sanctum',
+    type: 'http',
+    scheme: 'bearer'
+)]
+class OpenApiInfo {}
+```
+
+Re-generate docs after any change:
+
+```bash
+php artisan l5-swagger:generate
+```
+
 ### `ApiBaseController`
 
-Base controller with `#[OA\Info]`, `#[OA\Server]`, and `#[OA\SecurityScheme]` registered once for the whole app. All your API controllers extend this.
+Base controller with the `ApiResponse` trait. All your API controllers extend this:
 
 ```php
 use Gabylis\ApiFoundation\Controllers\ApiBaseController;
@@ -68,7 +107,7 @@ class ProductApiController extends ApiBaseController
 
 ### `ApiFormRequest`
 
-Base form request that always returns JSON on validation failure — no more 302 redirects from APIs.
+Base form request that always returns JSON on validation failure — no more 302 redirects from APIs:
 
 ```php
 use Gabylis\ApiFoundation\Requests\ApiFormRequest;
@@ -110,15 +149,13 @@ php artisan make:api-controller ProductApiController
 php artisan make:api-controller ProductApiController --resource=products --tag="Products"
 ```
 
-Then add the route:
-
-```php
-Route::apiResource('products', ProductApiController::class);
-```
-
-And generate the docs:
+Then add the route and generate docs:
 
 ```bash
+# routes/api.php
+Route::apiResource('products', ProductApiController::class);
+
+# Generate Swagger docs
 php artisan l5-swagger:generate
 ```
 
@@ -177,6 +214,35 @@ php artisan l5-swagger:generate
 | `sendPaginatedResponse($paginator, $message, $resourceClass = null)` | Paginated response with meta |
 | `sendError($message, $data = [], $status = 404)` | Error response |
 | `sendSuccess($message, $status = 200)` | Success with message only, no data |
+
+---
+
+## Full setup checklist
+
+```bash
+# 1. Install
+composer require gabylis/api-foundation
+
+# 2. Publish OpenAPI info
+php artisan vendor:publish --tag=api-foundation-openapi
+# → Edit app/OpenApi/OpenApiInfo.php with your title, version, contact
+
+# 3. Install and publish l5-swagger
+composer require darkaonline/l5-swagger
+php artisan vendor:publish --provider "L5Swagger\L5SwaggerServiceProvider"
+# → In config/l5-swagger.php set annotations to include app/ and vendor/gabylis/api-foundation/src
+
+# 4. Generate a controller
+php artisan make:api-controller ProductApiController --resource=products --tag="Products"
+
+# 5. Add route
+# Route::apiResource('products', ProductApiController::class);
+
+# 6. Generate docs
+php artisan l5-swagger:generate
+
+# 7. Open http://localhost:8000/api/documentation
+```
 
 ---
 
