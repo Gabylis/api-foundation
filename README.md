@@ -16,51 +16,35 @@ Built from real production patterns on Laravel + l5-swagger projects.
 
 ## Installation
 
+### 1. Install the package
+
 ```bash
 composer require gabylis/api-foundation
 ```
 
-### Publish everything
+### 2. Install and publish l5-swagger
 
 ```bash
-# OpenAPI global metadata (title, version, server, security) — edit this file
+composer require darkaonline/l5-swagger
+php artisan vendor:publish --provider "L5Swagger\L5SwaggerServiceProvider"
+```
+
+### 3. Publish the OpenAPI info file
+
+```bash
 php artisan vendor:publish --tag=api-foundation-openapi
-
-# Package config (optional)
-php artisan vendor:publish --tag=api-foundation-config
-
-# Controller generator stub (optional — customise the template)
-php artisan vendor:publish --tag=api-foundation-stubs
 ```
 
-### Configure l5-swagger to scan the published file
-
-In `config/l5-swagger.php`, add both your `app/` folder and the published OpenApi folder to the annotations path:
-
-```php
-'annotations' => [
-    base_path('app'),
-    base_path('vendor/gabylis/api-foundation/src'),
-],
-```
-
----
-
-## What's included
-
-### `OpenApiInfo.php` (published to `app/OpenApi/`)
-
-Global OpenAPI metadata — edit freely after publishing:
+This creates `app/OpenApi/OpenApiInfo.php` — edit it to set your API title, version, server URL, and security scheme:
 
 ```php
 #[OA\Info(
     title: 'My API',
-    version: '2.0.0',
+    version: '1.0.0',
     description: 'My API description',
     contact: new OA\Contact(email: 'dev@mycompany.com')
 )]
-#[OA\Server(url: '/api', description: 'Production')]
-#[OA\Server(url: '/api/v2', description: 'Staging')]
+#[OA\Server(url: '/api', description: 'Local')]
 #[OA\SecurityScheme(
     securityScheme: 'sanctum',
     type: 'http',
@@ -69,7 +53,35 @@ Global OpenAPI metadata — edit freely after publishing:
 class OpenApiInfo {}
 ```
 
-Re-generate docs after any change:
+### 4. Configure l5-swagger scanning
+
+In `config/l5-swagger.php`, set the `annotations` path inside `documentations.default.paths`:
+
+```php
+'annotations' => [
+    base_path('app'),
+],
+```
+
+> **Note:** You only need to scan `app/` — the published `OpenApiInfo.php` lives there.
+> Do **not** add `vendor/gabylis/api-foundation/src` to the annotations paths, as the
+> package no longer contains any OpenAPI annotations in the vendor folder.
+
+### 5. Generate docs
+
+```bash
+php artisan l5-swagger:generate
+```
+
+Open `http://localhost:8000/api/documentation`.
+
+---
+
+## What's included
+
+### `OpenApiInfo.php` (published to `app/OpenApi/`)
+
+Global OpenAPI metadata — edit freely after publishing. Re-generate docs after any change:
 
 ```bash
 php artisan l5-swagger:generate
@@ -83,8 +95,19 @@ Base controller with the `ApiResponse` trait. All your API controllers extend th
 use Gabylis\ApiFoundation\Controllers\ApiBaseController;
 use OpenApi\Attributes as OA;
 
+#[OA\Tag(name: 'Products', description: 'Product management')]
 class ProductApiController extends ApiBaseController
 {
+    #[OA\Get(
+        path: '/products',
+        operationId: 'get-products',
+        summary: 'List all products',
+        tags: ['Products'],
+        security: [['sanctum' => []]],
+        responses: [
+            new OA\Response(response: 200, description: 'Products retrieved successfully'),
+        ]
+    )]
     public function index(): JsonResponse
     {
         $products = Product::paginate(15);
@@ -126,7 +149,7 @@ class StoreProductRequest extends ApiFormRequest
 }
 ```
 
-Validation error response:
+Validation error response (always JSON, status 422):
 
 ```json
 {
@@ -149,13 +172,22 @@ php artisan make:api-controller ProductApiController
 php artisan make:api-controller ProductApiController --resource=products --tag="Products"
 ```
 
-Then add the route and generate docs:
+Options:
+
+| Option | Description |
+|---|---|
+| `--resource` | Route resource name (e.g. `products`). Defaults to snake_case of class name. |
+| `--tag` | OpenAPI tag label shown in Swagger UI. |
+| `--namespace` | Override default namespace (`App\Http\Controllers\Api`). |
+| `--path` | Override output path (`app/Http/Controllers/Api`). |
+| `--force` | Overwrite existing file. |
+
+Then add the route and regenerate:
 
 ```bash
 # routes/api.php
 Route::apiResource('products', ProductApiController::class);
 
-# Generate Swagger docs
 php artisan l5-swagger:generate
 ```
 
@@ -220,29 +252,42 @@ php artisan l5-swagger:generate
 ## Full setup checklist
 
 ```bash
-# 1. Install
-composer require gabylis/api-foundation
+# 1. Install packages
+composer require gabylis/api-foundation darkaonline/l5-swagger
 
-# 2. Publish OpenAPI info
-php artisan vendor:publish --tag=api-foundation-openapi
-# → Edit app/OpenApi/OpenApiInfo.php with your title, version, contact
-
-# 3. Install and publish l5-swagger
-composer require darkaonline/l5-swagger
+# 2. Publish l5-swagger config
 php artisan vendor:publish --provider "L5Swagger\L5SwaggerServiceProvider"
-# → In config/l5-swagger.php set annotations to include app/ and vendor/gabylis/api-foundation/src
 
-# 4. Generate a controller
+# 3. Publish OpenAPI info file
+php artisan vendor:publish --tag=api-foundation-openapi
+# → Edit app/OpenApi/OpenApiInfo.php
+
+# 4. Set annotations path in config/l5-swagger.php
+# 'annotations' => [ base_path('app') ]
+
+# 5. Generate a documented controller
 php artisan make:api-controller ProductApiController --resource=products --tag="Products"
 
-# 5. Add route
+# 6. Add route
 # Route::apiResource('products', ProductApiController::class);
 
-# 6. Generate docs
+# 7. Generate docs
 php artisan l5-swagger:generate
 
-# 7. Open http://localhost:8000/api/documentation
+# 8. Open http://localhost:8000/api/documentation
 ```
+
+---
+
+## Publishing the stub
+
+To customise the controller generator template:
+
+```bash
+php artisan vendor:publish --tag=api-foundation-stubs
+```
+
+This creates `stubs/api-foundation/api-controller.stub` — edit it and the generator will use your version instead of the default.
 
 ---
 

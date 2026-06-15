@@ -3,6 +3,7 @@
 namespace Gabylis\ApiFoundation;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Filesystem\Filesystem;
 use Gabylis\ApiFoundation\Commands\MakeApiControllerCommand;
 
 class ApiFoundationServiceProvider extends ServiceProvider
@@ -23,12 +24,24 @@ class ApiFoundationServiceProvider extends ServiceProvider
                 __DIR__ . '/../config/api-foundation.php' => config_path('api-foundation.php'),
             ], 'api-foundation-config');
 
-            // Publish OpenAPI info file — user edits this to set title, version, server, security
+            // Publish OpenAPI info — stub is copied as .php so swagger-php
+            // never scans the original inside the vendor folder
+            $this->callAfterResolving('files', function (Filesystem $files) {
+                $destination = app_path('OpenApi/OpenApiInfo.php');
+                if (!$files->exists($destination)) {
+                    $files->ensureDirectoryExists(dirname($destination));
+                    $files->copy(
+                        __DIR__ . '/Publishes/OpenApiInfo.stub',
+                        $destination
+                    );
+                }
+            });
+
             $this->publishes([
-                __DIR__ . '/Publishes/OpenApiInfo.php' => app_path('OpenApi/OpenApiInfo.php'),
+                __DIR__ . '/Publishes/OpenApiInfo.stub' => app_path('OpenApi/OpenApiInfo.php'),
             ], 'api-foundation-openapi');
 
-            // Publish stubs — user can customise the controller generator template
+            // Publish stubs for the controller generator
             $this->publishes([
                 __DIR__ . '/Stubs' => base_path('stubs/api-foundation'),
             ], 'api-foundation-stubs');
