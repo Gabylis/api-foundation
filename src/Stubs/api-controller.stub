@@ -1,0 +1,136 @@
+<?php
+
+namespace {{ namespace }};
+
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Gabylis\ApiFoundation\Controllers\ApiBaseController;
+use OpenApi\Attributes as OA;
+
+#[OA\Tag(name: '{{ tag }}', description: '{{ tag }} endpoints')]
+class {{ class }} extends ApiBaseController
+{
+    #[OA\Get(
+        path: '/{{ route }}',
+        operationId: 'get-{{ route-id }}-index',
+        summary: 'List all {{ resource }} resources',
+        tags: ['{{ tag }}'],
+        security: [['sanctum' => []]],
+        parameters: [
+            new OA\Parameter(name: 'per_page', in: 'query', required: false, schema: new OA\Schema(type: 'integer', default: 15)),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: '{{ resource }} list retrieved successfully',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(property: 'status', type: 'string', example: 'success'),
+                        new OA\Property(property: 'message', type: 'string', example: '{{ resource }} list retrieved successfully'),
+                        new OA\Property(property: 'data', type: 'array', items: new OA\Items(type: 'object')),
+                    ]
+                )
+            ),
+            new OA\Response(response: 401, description: 'Unauthenticated'),
+        ]
+    )]
+    public function index(Request $request): JsonResponse
+    {
+        // TODO: implement
+        return $this->sendResponse([], '{{ resource }} list retrieved successfully');
+    }
+
+    #[OA\Get(
+        path: '/{{ route }}/{id}',
+        operationId: 'get-{{ route-id }}-show',
+        summary: 'Get a single {{ resource }}',
+        tags: ['{{ tag }}'],
+        security: [['sanctum' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: '{{ resource }} retrieved successfully'),
+            new OA\Response(response: 404, description: '{{ resource }} not found'),
+        ]
+    )]
+    public function show(string $id): JsonResponse
+    {
+        // TODO: implement
+        return $this->sendResponse([], '{{ resource }} retrieved successfully');
+    }
+
+    #[OA\Post(
+        path: '/{{ route }}',
+        operationId: 'post-{{ route-id }}-store',
+        summary: 'Create a new {{ resource }}',
+        tags: ['{{ tag }}'],
+        security: [['sanctum' => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                type: 'object',
+                required: [],
+                properties: [
+                    // TODO: add your properties here
+                    // new OA\Property(property: 'name', type: 'string'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 201, description: '{{ resource }} created successfully'),
+            new OA\Response(response: 422, description: 'Validation error'),
+        ]
+    )]
+    public function store(Request $request): JsonResponse
+    {
+        // TODO: implement
+        return $this->sendResponse([], '{{ resource }} created successfully', 201);
+    }
+
+    #[OA\Put(
+        path: '/{{ route }}/{id}',
+        operationId: 'put-{{ route-id }}-update',
+        summary: 'Update a {{ resource }}',
+        tags: ['{{ tag }}'],
+        security: [['sanctum' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+        ],
+        requestBody: new OA\RequestBody(
+            content: new OA\JsonContent(type: 'object', properties: [
+                // TODO: add your properties here
+            ])
+        ),
+        responses: [
+            new OA\Response(response: 200, description: '{{ resource }} updated successfully'),
+            new OA\Response(response: 404, description: '{{ resource }} not found'),
+        ]
+    )]
+    public function update(Request $request, string $id): JsonResponse
+    {
+        // TODO: implement
+        return $this->sendResponse([], '{{ resource }} updated successfully');
+    }
+
+    #[OA\Delete(
+        path: '/{{ route }}/{id}',
+        operationId: 'delete-{{ route-id }}-destroy',
+        summary: 'Delete a {{ resource }}',
+        tags: ['{{ tag }}'],
+        security: [['sanctum' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: '{{ resource }} deleted successfully'),
+            new OA\Response(response: 404, description: '{{ resource }} not found'),
+        ]
+    )]
+    public function destroy(string $id): JsonResponse
+    {
+        // TODO: implement
+        return $this->sendSuccess('{{ resource }} deleted successfully');
+    }
+}

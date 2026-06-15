@@ -1,0 +1,51 @@
+{
+    "name": "gabylis/api-foundation",
+    "description": "Opinionated Laravel API base: structured JSON responses, PHP 8 OpenAPI attributes scaffold, and Artisan generator for documented controllers.",
+    "type": "library",
+    "license": "MIT",
+    "keywords": ["laravel", "api", "openapi", "swagger", "rest"],
+    "authors": [
+        {
+            "name": "Gabriela Martínez",
+            "email": "gabrielam25@gmail.com",
+            "homepage": "https://github.com/Gabylis"
+        }
+    ],
+    "require": {
+        "php": "^8.1",
+        "illuminate/support": "^10.0|^11.0|^12.0",
+        "illuminate/routing": "^10.0|^11.0|^12.0",
+        "illuminate/http": "^10.0|^11.0|^12.0",
+        "darkaonline/l5-swagger": "^8.5",
+        "zircote/swagger-php": "^4.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^8.0|^9.0",
+        "pestphp/pest": "^2.0",
+        "pestphp/pest-plugin-laravel": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Gabylis\\ApiFoundation\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Gabylis\\ApiFoundation\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Gabylis\\ApiFoundation\\ApiFoundationServiceProvider"
+            ]
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
